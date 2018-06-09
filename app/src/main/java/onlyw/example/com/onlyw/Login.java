@@ -49,7 +49,7 @@ public class Login extends AppCompatActivity {
         Log.i(Tag,"OnCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
+    String i = "";
         //requestWindowFeature(Window.FEATURE_NO_TITLE);
         getSupportActionBar().hide();
 
