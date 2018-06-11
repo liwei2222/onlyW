@@ -1,6 +1,9 @@
 package onlyw.example.com.onlyw;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.LayoutRes;
@@ -31,25 +34,31 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 
 public class Login extends AppCompatActivity {
 
-    private String Tag="http";
-    private EditText editTextaccount=null;
-    private EditText editTextpassword=null;
-    private ImageView imageViewLogin=null;
+    private String Tag = "http";
+    private EditText editTextaccount = null;
+    private EditText editTextpassword = null;
+    private ImageView imageViewLogin = null;
 
     private String BaseUrl="http://10.80.104.60:8080/user/login";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         Log.i(Tag,"OnCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-    String i = "";
         //requestWindowFeature(Window.FEATURE_NO_TITLE);
         getSupportActionBar().hide();
 
@@ -86,8 +95,8 @@ public class Login extends AppCompatActivity {
         public void onClick(View view) {
             String strAccount=editTextaccount.getText().toString();
             String strPassword=editTextpassword.getText().toString();
-            sendRequest(strAccount,strPassword);
-
+            //sendRequest(strAccount,strPassword);
+            show(view);
         }
     };
 
@@ -112,6 +121,60 @@ public class Login extends AppCompatActivity {
         }).start();
     }
 
+    public void showPicture() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                HttpClient httpClient = new DefaultHttpClient();
+                HttpGet httpGet = new HttpGet("http://192.168.2.12:8080/getProductions?cameristId=1");
+                try{
+                    HttpResponse response = httpClient.execute(httpGet);
+                    HttpEntity entity = response.getEntity();
+                    String responseStr = EntityUtils.toString(entity);
+                    Message message = new Message();
+                    message.what = 1;
+                    message.obj = responseStr;
+                    handler.sendMessage(message);
+                }catch (Exception e) {
+                    System.out.print("==================>"+e);
+                }
+            }
+        }).start();
+    }
+
+    public void show(View view) {
+        new Thread(new Runnable() {
+            public void run() {
+                Message message = new Message();
+                message.obj = getPicture();
+                message.what = 3;
+                handler.sendMessage(message);
+            }
+        }).start();
+
+    }
+
+    private Bitmap getPicture() {
+        URL imgUrl = null;
+        Bitmap bitmap = null;
+        try {
+            imgUrl = new URL("http://192.168.2.12:8080/temp2.jpg");
+            HttpURLConnection conn = (HttpURLConnection) imgUrl
+                    .openConnection();
+            conn.setDoInput(true);
+            conn.connect();
+            InputStream is = conn.getInputStream();
+            bitmap = BitmapFactory.decodeStream(is);
+            is.close();
+        } catch (MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bitmap;
+    }
+
     public Handler handler = new Handler() {
         public void handleMessage(Message message) {
             try {
@@ -132,6 +195,10 @@ public class Login extends AppCompatActivity {
                         System.out.println("name=========>" + object.get("name"));
                         System.out.println("price========>" + object.get("price"));
                     }
+                }
+                if(message.what == 3) {
+                    ImageView view1 = (ImageView) findViewById(R.id.production);
+                    view1.setImageBitmap((Bitmap) message.obj);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
