@@ -74,7 +74,7 @@ public class Login extends AppCompatActivity {
         textViewRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intentLoginToRegister=new Intent(Login.this,Register.class);
+                Intent intentLoginToRegister = new Intent(Login.this,Register.class);
                 startActivity(intentLoginToRegister);
             }
         });
@@ -89,18 +89,17 @@ public class Login extends AppCompatActivity {
         imageViewLogin.setOnClickListener(LoginClickListener);
     }
 
-
     private View.OnClickListener LoginClickListener=new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             String strAccount=editTextaccount.getText().toString();
             String strPassword=editTextpassword.getText().toString();
-            //sendRequest(strAccount,strPassword);
-            show(view);
+            login(strAccount,strPassword);
+            //show(view);
         }
     };
 
-    public void sendRequest(final String account,final String password) {
+    public void login(final String account,final String password) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -121,28 +120,7 @@ public class Login extends AppCompatActivity {
         }).start();
     }
 
-    public void showPicture() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                HttpClient httpClient = new DefaultHttpClient();
-                HttpGet httpGet = new HttpGet("http://192.168.2.12:8080/getProductions?cameristId=1");
-                try{
-                    HttpResponse response = httpClient.execute(httpGet);
-                    HttpEntity entity = response.getEntity();
-                    String responseStr = EntityUtils.toString(entity);
-                    Message message = new Message();
-                    message.what = 1;
-                    message.obj = responseStr;
-                    handler.sendMessage(message);
-                }catch (Exception e) {
-                    System.out.print("==================>"+e);
-                }
-            }
-        }).start();
-    }
-
-    public void show(View view) {
+    /*public void show(View view) {
         new Thread(new Runnable() {
             public void run() {
                 Message message = new Message();
@@ -158,7 +136,7 @@ public class Login extends AppCompatActivity {
         URL imgUrl = null;
         Bitmap bitmap = null;
         try {
-            imgUrl = new URL("http://192.168.2.12:8080/temp2.jpg");
+            imgUrl = new URL("http://10.80.104.60:8080/temp2.jpg");
             HttpURLConnection conn = (HttpURLConnection) imgUrl
                     .openConnection();
             conn.setDoInput(true);
@@ -167,13 +145,12 @@ public class Login extends AppCompatActivity {
             bitmap = BitmapFactory.decodeStream(is);
             is.close();
         } catch (MalformedURLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
         return bitmap;
-    }
+    }*/
 
     public Handler handler = new Handler() {
         public void handleMessage(Message message) {
@@ -182,23 +159,10 @@ public class Login extends AppCompatActivity {
                     JSONObject obj = new JSONObject(message.obj.toString());
                     Boolean data = (Boolean) obj.get("data");
                     if(data != null && data == true) {
-                        System.out.println("登陆成功");
+
                     } else {
-                        System.out.println("用户名或密码错误");
+
                     }
-                }
-                if(message.what == 2) {
-                    JSONObject obj = new JSONObject(message.obj.toString());
-                    JSONArray data = obj.getJSONArray("data");
-                    for (int i = 0; i <= data.length() - 1; i++) {
-                        JSONObject object = (JSONObject) data.get(i);
-                        System.out.println("name=========>" + object.get("name"));
-                        System.out.println("price========>" + object.get("price"));
-                    }
-                }
-                if(message.what == 3) {
-                    ImageView view1 = (ImageView) findViewById(R.id.production);
-                    view1.setImageBitmap((Bitmap) message.obj);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
